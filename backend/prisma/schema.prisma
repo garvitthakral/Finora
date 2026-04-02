@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum USER_ROLE {
+  VIEWER
+  ANALYST
+  ADMIN
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model User {
+  id                    String        @id @default(uuid())
+  email                 String        @unique
+  password              String
+  name                  String?
+  role                  USER_ROLE     @default(VIEWER)
+  
+  transactions          Transaction[]
+  monthlySummaries      UserMonthlySummary[]
+  categorySummaries     UserCategorySummary[]
+
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+}
+
+model Transaction {
+  id               String   @id @default(uuid())
+
+  amount           Decimal  @db.Decimal(10,2)
+  currency         String @default("INR")
+  type             TransactionType
+  category         String
+  notes            String?
+
+  transactionDate  DateTime
+
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  @@index([userId])
+  @@index([transactionDate])
+  @@index([userId, transactionDate])
+  @@index([category])
+  @@index([userId, category])
+  @@index([type])
+  @@index([userId, type])
+}
+
+model UserMonthlySummary {
+  id                String   @id @default(uuid())
+
+  month             DateTime
+
+  totalIncome       Decimal @db.Decimal(10,2)
+  totalExpense      Decimal @db.Decimal(10,2)
+  netBalance        Decimal @db.Decimal(10,2)
+  transactionCount  Int
+
+  highestExpense    Decimal? @db.Decimal(10,2)
+  largestCategory   String?
+
+  avgDailySpend     Decimal? @db.Decimal(10,2)
+
+  userId            String
+  user              User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, month])
+  @@index([userId])
+}
+
+model UserCategorySummary {
+  id                   String   @id @default(uuid())
+  category             String
+
+  totalIncome          Decimal @db.Decimal(10,2)
+  totalExpense         Decimal @db.Decimal(10,2)
+  transactionCount     Int
+
+  highestTransaction   Decimal? @db.Decimal(10,2)
+  averageTransaction   Decimal? @db.Decimal(10,2)
+
+  userId               String
+  user                 User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, category])
+}
