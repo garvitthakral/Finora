@@ -3,6 +3,7 @@ import { CreateUserReqSchema } from "../../../types/userLogin.type.js";
 import prisma from "../../../db/prisma.js";
 import { sendWelcomeEmail } from "../../..//util/otp/sendWelcomeEmail.js";
 import type { USER_ROLE } from "@prisma/client";
+import jwt from "jsonwebtoken";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -35,6 +36,20 @@ export const createUser = async (req: Request, res: Response) => {
       },
     });
 
+    const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET as string, {
+      expiresIn: "7d",
+      issuer: "finora-backend",
+      audience: "finora-users",
+      algorithm: "HS256",
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 29 * 24 * 60 * 60 * 1000,
+    });
+
     const isEmailSent = await sendWelcomeEmail(
       email,
       `${firstName} ${lastName}`,
@@ -42,10 +57,10 @@ export const createUser = async (req: Request, res: Response) => {
     );
     if (!isEmailSent) {
       return res.status(201).json({
-      success: true,
-      message: "User created but failed to send welcome email",
-      data: user,
-    });
+        success: true,
+        message: "User created but failed to send welcome email",
+        data: user,
+      });
     }
 
     return res.status(201).json({
