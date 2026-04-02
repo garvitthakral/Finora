@@ -22,10 +22,10 @@ export const otpSignin = async (req: Request, res: Response) => {
       where: { email },
     });
 
-    if (existingUser) {
+    if (existingUser?.status === "SUSPENDED" || existingUser?.status === "INACTIVE") {
       return res.status(400).json({
         success: false,
-        error: "User already exists",
+        error: "User is deleted or suspended",
       });
     }
 

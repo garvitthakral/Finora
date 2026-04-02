@@ -36,12 +36,16 @@ export const createUser = async (req: Request, res: Response) => {
       },
     });
 
-    const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET as string, {
-      expiresIn: "7d",
-      issuer: "finora-backend",
-      audience: "finora-users",
-      algorithm: "HS256",
-    });
+    const token = jwt.sign(
+      { sub: user.id, role: user.role },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: "7d",
+        issuer: "finora-backend",
+        audience: "finora-users",
+        algorithm: "HS256",
+      },
+    );
 
     res.cookie("token", token, {
       httpOnly: true,

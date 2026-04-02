@@ -18,6 +18,17 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
     const { email, otp, isLogin } = parsed.data;
 
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser?.status === "SUSPENDED" || existingUser?.status === "INACTIVE") {
+      return res.status(400).json({
+        success: false,
+        error: "User is Deleted or Suspended",
+      });
+    }
+
     const hashedOTP = hashOTP(otp);
     if (!hashedOTP) {
       return res.status(400).json({
@@ -59,7 +70,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
       }
 
       const token = jwt.sign(
-        { sub: user.id },
+        { sub: user.id, role: user.role },
         process.env.JWT_SECRET as string,
         {
           expiresIn: "7d",
