@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import type { CorsOptions } from "cors";
+import userRouter from "./service/user/index.js";
 
 const origin = process.env.CORS_ORIGIN;
 
@@ -14,6 +15,8 @@ const app = express();
 
 app.use(express.json());
 app.use(cors(corsOptions));
+
+app.use("/api/user", userRouter);
 
 app.get("/", (_req, res) => {
   res.send("API is running 🚀");

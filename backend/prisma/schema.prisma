@@ -28,7 +28,6 @@ enum TransactionType {
 model User {
   id                    String        @id @default(uuid())
   email                 String        @unique
-  password              String
   name                  String?
   role                  USER_ROLE     @default(VIEWER)
   
