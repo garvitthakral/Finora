@@ -4,7 +4,6 @@ import prisma from "../../../db/prisma";
 import { Prisma } from "@prisma/client";
 
 export const createTransaction = async (req: Request, res: Response) => {
-  console.log("Create transaction controller hit");
   try {
     const parsed = CreateTransactionReqSchema.safeParse(req.body);
 

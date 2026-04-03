@@ -1,4 +1,4 @@
-import { z} from "zod";
+import { z } from "zod";
 
 export const CreateTransactionReqSchema = z.object({
   amount: z.number().positive(),
@@ -8,4 +8,17 @@ export const CreateTransactionReqSchema = z.object({
   date: z.string(),
 });
 
-export type CreateTransactionReqData = z.infer<typeof CreateTransactionReqSchema>;
+export type CreateTransactionReqData = z.infer<
+  typeof CreateTransactionReqSchema
+>;
+
+export const UpdateTransactionReqSchema = z.object({
+  amount: z.number().positive().optional(),
+  type: z.enum(["INCOME", "EXPENSE"]).optional(),
+  category: z.string().min(1).optional(),
+  date: z.string().optional(),
+});
+
+export type UpdateTransactionReqData = z.infer<
+  typeof UpdateTransactionReqSchema
+>;
