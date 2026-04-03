@@ -52,6 +52,7 @@ model Transaction {
   notes            String?
 
   transactionDate  DateTime
+  isFirstTransactionOfDay Boolean @default(false)
 
   userId           String
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -83,6 +84,7 @@ model UserMonthlySummary {
   largestCategory   String?
 
   avgDailySpend     Decimal? @db.Decimal(10,2)
+  activeExpenseDays Int      @default(1)
 
   userId            String
   user              User @relation(fields: [userId], references: [id])
