@@ -128,8 +128,7 @@ export const createTransaction = async (req: Request, res: Response) => {
         error: "Database connection error",
       });
     }
-
-    // Generic error
+    
     res.status(500).json({
       success: false,
       error: "Failed to create transaction",
