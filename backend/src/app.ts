@@ -3,6 +3,7 @@ import cors from "cors";
 import type { CorsOptions } from "cors";
 import userRouter from "./service/user/index.js";
 import transactionRouter from "./service/transaction/index.js";
+import statsRouter from "./service/stats/index.js";
 
 const origin = process.env.CORS_ORIGIN;
 
@@ -19,6 +20,7 @@ app.use(cors(corsOptions));
 
 app.use("/api/user", userRouter);
 app.use("/api/transaction", transactionRouter);
+app.use("/api/stats", statsRouter);
 
 app.get("/", (_req, res) => {
   res.send("API is running 🚀");

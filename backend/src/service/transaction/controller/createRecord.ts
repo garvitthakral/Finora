@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { CreateTransactionReqSchema } from "../../../types/transaction/createTransactionReq.type";
 import prisma from "../../../db/prisma";
 import { Prisma } from "@prisma/client";
+import { deleteDashboardKeys } from "../../../util/transaction/deleteCacheKey";
 
 export const createTransaction = async (req: Request, res: Response) => {
   try {
@@ -219,6 +220,12 @@ export const createTransaction = async (req: Request, res: Response) => {
 
       return { transaction, monthlySummary, categorySummary };
     });
+
+    const isKeyRemoved = await deleteDashboardKeys(userId);
+
+    if (!isKeyRemoved) {
+      console.warn(`Failed to delete dashboard cache keys for user ${userId}`);
+    }
 
     res.status(201).json({
       success: true,
