@@ -17,8 +17,8 @@ export const createTransaction = async (req: Request, res: Response) => {
       });
     }
 
-    const { amount, type, notes, date, category } = parsed.data;
-    const { id: userId, role } = req.user!;
+    const { amount, type, notes, date, category, userId } = parsed.data;
+    const { role } = req.user!;
 
     if (role === "VIEWER" || role === "ANALYST") {
       return res.status(403).json({

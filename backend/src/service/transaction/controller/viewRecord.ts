@@ -30,7 +30,7 @@ export const viewTransaction = async (req: Request, res: Response) => {
       });
     }
 
-    if (role === "VIEWER" || role === "ANALYST") {
+    if (role === "VIEWER") {
       return res.status(403).json({
         success: false,
         error: "You do not have permission to view this transaction",

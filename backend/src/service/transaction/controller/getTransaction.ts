@@ -7,7 +7,7 @@ export const getTransactions = async (req: Request, res: Response) => {
   try {
     const { id: userId, role } = req.user!;
 
-    if (role === "VIEWER" || role === "ANALYST") {
+    if (role === "VIEWER") {
       return res.status(403).json({
         success: false,
         error: "You do not have permission to get transactions",

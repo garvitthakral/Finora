@@ -29,7 +29,13 @@ export const getDashboardData = async (req: Request, res: Response) => {
     const cached = await getCache(cacheKey);
 
     if (cached) {
-      return res.json({
+      if (role === "VIEWER") {
+        return res.status(200).json({
+          netBalance: cached.netBalance,
+          currMonthBalance: cached.currMonthBalance,
+        });
+      }
+      return res.status(200).json({
         success: true,
         message: "Dashboard retrieved from cache",
         data: cached,
@@ -143,9 +149,16 @@ export const getDashboardData = async (req: Request, res: Response) => {
       currMonthBalance: formattedData.currMonthBalance,
     };
 
-    await setCache(cacheKey, responseData);
+    await setCache(cacheKey, responseData, 60 * 60 * 28);
 
-    return res.json({
+    if (role === "VIEWER") {
+      return res.status(200).json({
+        netBalance: responseData.netBalance,
+        currMonthBalance: responseData.currMonthBalance,
+      });
+    }
+
+    return res.status(200).json({
       success: true,
       message: "Dashboard data retrieved successfully",
       data: responseData,

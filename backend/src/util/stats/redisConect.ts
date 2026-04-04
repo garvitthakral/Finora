@@ -10,9 +10,13 @@ export async function getCache(key: string) {
   }
 }
 
-export async function setCache(key: string, value: unknown) {
+export async function setCache(
+  key: string,
+  value: unknown,
+  ttlSeconds: number,
+) {
   try {
-    await redisConnection.set(key, JSON.stringify(value), "EX", 60 * 60 * 28);
+    await redisConnection.set(key, JSON.stringify(value), "EX", ttlSeconds);
   } catch (err) {
     console.error("Redis SET failed:", err);
   }
