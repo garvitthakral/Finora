@@ -1,7 +1,6 @@
 import {z} from "zod";
 
 export const ChangeUserRoleReqSchema = z.object({
-  userId: z.string(),
   newRole: z.enum(["VIEWER", "ANALYST", "ADMIN"]),
 });
 

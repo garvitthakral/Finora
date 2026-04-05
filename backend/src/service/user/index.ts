@@ -12,7 +12,12 @@ const router = Router();
 router.post("/signup", otpSignin);
 router.post("/verify-otp", verifyOtp);
 router.post("/create-user", createUser);
-router.get("/users", allowRoles(["ADMIN", "ANALYST"]), getUsers);
+router.get(
+  "/get-users",
+  authenticateUser,
+  allowRoles(["ADMIN", "ANALYST"]),
+  getUsers,
+);
 router.patch(
   "/change-role/:id",
   authenticateUser,

@@ -5,6 +5,7 @@ import { formatDashboardData } from "../../../util/stats/formatStats";
 import { Prisma } from "@prisma/client";
 import { redisConnection } from "../../../db/redis.config";
 import { getCache, setCache } from "../../../util/stats/redisConect";
+import { de } from "zod/v4/locales";
 
 export const getDashboardData = async (req: Request, res: Response) => {
   try {
@@ -45,6 +46,7 @@ export const getDashboardData = async (req: Request, res: Response) => {
     const whereClause = {
       userId,
       ...dateFilter,
+      deletedAt: null,
     };
 
     const currMonth = new Date();
@@ -111,7 +113,7 @@ export const getDashboardData = async (req: Request, res: Response) => {
         SUM(CASE WHEN type='INCOME' THEN amount ELSE 0 END) as income,
         SUM(CASE WHEN type='EXPENSE' THEN amount ELSE 0 END) as expense
       FROM "Transaction"
-      WHERE "userId" = ${userId}
+      WHERE "userId" = ${userId} AND "deletedAt" IS NULL
       GROUP BY month
       ORDER BY month;
     `;

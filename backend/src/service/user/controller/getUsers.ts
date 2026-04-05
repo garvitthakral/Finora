@@ -36,12 +36,19 @@ export const getUsers = async (
       const users = await tx.user.findMany({
         skip,
         take: limit,
+        where: {
+          deletedAt: null,
+        },
         orderBy: {
           createdAt: "desc",
         },
       });
 
-      const totalUsers = await tx.user.count();
+      const totalUsers = await tx.user.count({
+        where: {
+          deletedAt: null,
+        },
+      });
       return { users, totalUsers };
     });
 
