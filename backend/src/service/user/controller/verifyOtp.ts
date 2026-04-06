@@ -89,6 +89,12 @@ export const verifyOtp = async (req: Request, res: Response) => {
         sameSite: "none",
         maxAge: 29 * 24 * 60 * 60 * 1000,
       });
+
+      return res.status(200).json({
+        success: true,
+        message: "OTP verified successfully",
+        data: { token },
+      });
     }
 
     return res.status(200).json({

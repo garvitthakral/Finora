@@ -6,12 +6,14 @@ import { getUsers } from "./controller/getUsers";
 import { allowRoles } from "../../middleware/allowedRolesMiddleware";
 import { authenticateUser } from "../../middleware/JWTAuthMiddleware";
 import { changeRole } from "./controller/changeRole";
+import { getMe } from "./controller/getMe";
 
 const router = Router();
 
 router.post("/signup", otpSignin);
 router.post("/verify-otp", verifyOtp);
 router.post("/create-user", createUser);
+router.get("/me", authenticateUser, getMe);
 router.get(
   "/get-users",
   authenticateUser,
