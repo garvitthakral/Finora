@@ -127,16 +127,16 @@ On **create**, the service updates `UserMonthlySummary` (per calendar month) and
 
 ```bash
 cd backend
-npm install
+bun install
 ```
 
 Generate the Prisma client and apply migrations:
 
 ```bash
-npx prisma generate
-npx prisma migrate deploy
+bun prisma generate
+bun prisma migrate deploy
 # or during development:
-npx prisma migrate dev
+bunx prisma migrate dev
 ```
 
 ### Environment variables
@@ -175,14 +175,14 @@ SMTP_PASS=
 **Development** (watch mode):
 
 ```bash
-npm run dev
+bun dev
 ```
 
 **Production** (compile then run):
 
 ```bash
-npm run build
-npm start
+bun run build
+bun start
 ```
 
 Health check: `GET /` returns a short plain-text message that the API is running.
