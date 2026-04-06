@@ -1,4 +1,4 @@
-// import "dotenv/config";
+import "dotenv/config";
 import { Redis } from "ioredis";
 
 const redisHost = process.env.REDIS_HOST || "127.0.0.1";
