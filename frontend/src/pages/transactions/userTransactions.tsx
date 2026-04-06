@@ -43,6 +43,18 @@ type CreateTransactionResponse = {
   };
 };
 
+type UpdateTransactionResponse = {
+  success: true;
+  message: string;
+  data: TransactionRow;
+};
+
+type DeleteTransactionResponse = {
+  success: true;
+  message: string;
+  data: TransactionRow;
+};
+
 type Filters = {
   page: number;
   limit: number;
@@ -107,6 +119,8 @@ export default function UserTransactionsPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
   const [detail, setDetail] = useState<TransactionRow | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   // Derived validation for UI feedback
   const rangeError = useMemo(() => {
@@ -612,7 +626,36 @@ export default function UserTransactionsPage() {
         tx={detail}
         prettyDate={prettyDate}
         prettyDateTime={prettyDateTime}
+        canManage={authUser?.role === "ADMIN"}
+        onEdit={() => setEditOpen(true)}
+        onDelete={() => setDeleteOpen(true)}
       />
+
+      {detail && editOpen && (
+        <EditTransactionModal
+          token={token}
+          tx={detail}
+          onClose={() => setEditOpen(false)}
+          onUpdated={(updated) => {
+            setEditOpen(false);
+            setDetail(updated);
+            fetchData({ ...filters });
+          }}
+        />
+      )}
+
+      {detail && deleteOpen && (
+        <DeleteTransactionConfirm
+          token={token}
+          tx={detail}
+          onClose={() => setDeleteOpen(false)}
+          onDeleted={() => {
+            setDeleteOpen(false);
+            setDetailOpen(false);
+            fetchData({ ...filters });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -625,6 +668,9 @@ function DetailModal({
   tx,
   prettyDate,
   prettyDateTime,
+  canManage,
+  onEdit,
+  onDelete,
 }: {
   open: boolean;
   onClose: () => void;
@@ -633,6 +679,9 @@ function DetailModal({
   tx: TransactionRow | null;
   prettyDate: (iso: string) => string;
   prettyDateTime: (iso: string) => string;
+  canManage?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   if (!open) return null;
   return (
@@ -715,8 +764,268 @@ function DetailModal({
                   <div className="text-gray-400">ID</div>
                   <div className="font-mono text-xs text-gray-400">{tx.id}</div>
                 </div>
+                {canManage && (
+                  <div className="sm:col-span-2 flex items-center justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={onEdit}
+                      className="text-sm px-3 py-2 rounded-lg bg-[#16181F] border border-gray-800 hover:bg-[#14161c] transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onDelete}
+                      className="text-sm px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditTransactionModal({
+  token,
+  tx,
+  onClose,
+  onUpdated,
+}: {
+  token: string | null;
+  tx: TransactionRow;
+  onClose: () => void;
+  onUpdated: (updated: TransactionRow) => void;
+}) {
+  const [type, setType] = useState<"INCOME" | "EXPENSE">(tx.type);
+  const [amount, setAmount] = useState<string>(tx.amount);
+  const [category, setCategory] = useState<string>(tx.category);
+  const [date, setDate] = useState<string>(tx.transactionDate.slice(0, 10));
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const hasChanges =
+    type !== tx.type ||
+    category !== tx.category ||
+    date !== tx.transactionDate.slice(0, 10) ||
+    amount !== tx.amount;
+
+  const canSubmit = !!token && !submitting && hasChanges && (amount === "" || Number(amount) > 0);
+
+  const submit = async () => {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const baseUrl =
+        import.meta.env.VITE_UPDATE_TRANSACTION_URL ||
+        `${import.meta.env.VITE_API_BASE_URL}/api/transaction/update-record`;
+      const url = `${baseUrl}/${tx.id}`;
+      const body: Record<string, any> = {};
+      if (amount !== tx.amount) body.amount = Number(amount);
+      if (type !== tx.type) body.type = type;
+      if (category !== tx.category) body.category = category.trim();
+      if (date !== tx.transactionDate.slice(0, 10)) body.date = date;
+      if (Object.keys(body).length === 0) {
+        setSubmitting(false);
+        return;
+      }
+      const res = await axios.patch<UpdateTransactionResponse>(
+        url,
+        body,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      onUpdated(res.data.data);
+    } catch (e) {
+      const message = (e as any)?.response?.data?.message || (e instanceof Error ? e.message : "Failed to update transaction");
+      setError(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Edit transaction">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="Close edit transaction modal"
+      />
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-lg rounded-xl border border-gray-800 bg-[#0F1117] overflow-hidden">
+          <div className="p-5 flex items-center justify-between border-b border-gray-800">
+            <h3 className="text-lg font-semibold">Edit transaction</h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-sm px-3 py-2 rounded-lg bg-transparent border border-gray-800 hover:bg-[#14161c] transition-colors"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="p-5 space-y-4">
+            {error && (
+              <div className="rounded-lg border border-red-900/40 bg-red-950/30 px-4 py-3 text-sm text-red-200">
+                {error}
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-gray-400" htmlFor="editType">Type</label>
+                <select
+                  id="editType"
+                  value={type}
+                  onChange={(e) => setType(e.target.value as any)}
+                  className="w-full bg-[#16181F] border border-gray-800 rounded-lg px-3 py-2 text-sm outline-none"
+                >
+                  <option value="EXPENSE">EXPENSE</option>
+                  <option value="INCOME">INCOME</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-400" htmlFor="editAmount">Amount</label>
+                <input
+                  id="editAmount"
+                  type="number"
+                  min={0}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full bg-[#16181F] border border-gray-800 rounded-lg px-3 py-2 text-sm outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-gray-400" htmlFor="editCategory">Category</label>
+              <input
+                id="editCategory"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full bg-[#16181F] border border-gray-800 rounded-lg px-3 py-2 text-sm outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400" htmlFor="editDate">Date</label>
+              <input
+                id="editDate"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full bg-[#16181F] border border-gray-800 rounded-lg px-3 py-2 text-sm outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="p-5 border-t border-gray-800 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-sm px-4 py-2 rounded-lg bg-transparent border border-gray-800 hover:bg-[#14161c] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={!canSubmit}
+              onClick={submit}
+              className="text-sm px-4 py-2 rounded-lg bg-[#6C63FF] hover:bg-[#5b54e6] transition-colors disabled:opacity-50 disabled:hover:bg-[#6C63FF]"
+            >
+              {submitting ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteTransactionConfirm({
+  token,
+  tx,
+  onClose,
+  onDeleted,
+}: {
+  token: string | null;
+  tx: TransactionRow;
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    if (!token || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const baseUrl =
+        import.meta.env.VITE_DELETE_TRANSACTION_URL ||
+        `${import.meta.env.VITE_API_BASE_URL}/api/transaction/delete-record`;
+      const url = `${baseUrl}/${tx.id}`;
+      await axios.delete<DeleteTransactionResponse>(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      onDeleted();
+    } catch (e) {
+      const message = (e as any)?.response?.data?.message || (e instanceof Error ? e.message : "Failed to delete transaction");
+      setError(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Delete transaction confirmation">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="Close delete transaction modal"
+      />
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-lg rounded-xl border border-gray-800 bg-[#0F1117] overflow-hidden">
+          <div className="p-5 flex items-center justify-between border-b border-gray-800">
+            <h3 className="text-lg font-semibold text-red-200">Confirm delete</h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-sm px-3 py-2 rounded-lg bg-transparent border border-gray-800 hover:bg-[#14161c] transition-colors"
+            >
+              Close
+            </button>
+          </div>
+          <div className="p-5 space-y-4">
+            {error && (
+              <div className="rounded-lg border border-red-900/40 bg-red-950/30 px-4 py-3 text-sm text-red-200">
+                {error}
+              </div>
+            )}
+            <p className="text-sm text-gray-300">
+              Delete this transaction? This will soft-delete it (can’t be viewed in listings).
+            </p>
+          </div>
+          <div className="p-5 border-t border-gray-800 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-sm px-4 py-2 rounded-lg bg-transparent border border-gray-800 hover:bg-[#14161c] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={submit}
+              className="text-sm px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition-colors disabled:opacity-50"
+            >
+              {submitting ? "Deleting…" : "Delete"}
+            </button>
           </div>
         </div>
       </div>
