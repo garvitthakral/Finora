@@ -7,6 +7,7 @@ import Signup from "./pages/login_signup/signup";
 import Otp from "./pages/otp/Otp";
 import CreateUser from "./pages/createUser/CreateUser";
 import Unauthorized from "./pages/unauthorized/Unauthorized";
+import UserTransactionsPage from "./pages/transactions/userTransactions";
 
 const App = () => {
   return (
@@ -33,6 +34,14 @@ const App = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/otp" element={<Otp />} />
           <Route path="/create-user" element={<CreateUser />} />
+          <Route
+            path="/users/:id/transactions"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "ANALYST"]}>
+                <UserTransactionsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>
       </div>

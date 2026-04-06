@@ -355,6 +355,7 @@ type DeleteUserResponse = {
 };
 
 function UsersPanel({ token }: { token: string | null }) {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -476,7 +477,8 @@ function UsersPanel({ token }: { token: string | null }) {
                 users.map((u) => (
                   <tr
                     key={u.id}
-                    className="border-b border-gray-800 hover:bg-[#1f2230]"
+                    onClick={() => navigate(`/users/${u.id}/transactions`, { state: { user: u } })}
+                    className="border-b border-gray-800 hover:bg-[#1f2230] cursor-pointer"
                   >
                     <td className="py-3 pr-4">{u.name}</td>
                     <td className="py-3 pr-4">{u.email}</td>
@@ -496,7 +498,8 @@ function UsersPanel({ token }: { token: string | null }) {
                       <div className="inline-flex items-center gap-2">
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setEditingUser(u);
                           }}
                           className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-800 hover:bg-[#14161c] transition-colors"
@@ -505,7 +508,10 @@ function UsersPanel({ token }: { token: string | null }) {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setDeletingUser(u)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingUser(u);
+                          }}
                           className="text-xs px-2.5 py-1.5 rounded-lg border border-red-900/40 text-red-200 hover:bg-red-950/30 transition-colors"
                         >
                           Delete
