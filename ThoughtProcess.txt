@@ -69,16 +69,3 @@ I am thinking of adding redis caching in dashboard but i am confused on for how 
 I fucked up big while doing middleware : Admin: Can create, update, and manage records and users
 I have made controllers for records where admin can add them but now i am seeing he need access to users also to see users and manage them also
 So now my work is to make controllers that admin has access to and can do curd for users as well
-
-
-
-
-
-
-
-
-
-
-
-
-Technical Decisions and Trade-offs:

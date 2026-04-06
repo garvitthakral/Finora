@@ -2,74 +2,100 @@
 
 > A personal finance app that helps you track expenses, manage budgets, and gain clear insights into your money — all in one place.
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-finora.onrender.com-blue?style=for-the-badge)](https://finora-b7o6.onrender.com/)
+
 ---
 
 ## 📖 Table of Contents
 
-- [About the Project](#about-the-project)
-- [Monorepo Structure](#monorepo-structure)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Clone the Repo](#clone-the-repo)
-  - [Run Backend](#run-backend)
-  - [Run Frontend](#run-frontend)
-- [Environment Variables](#environment-variables)
+- [About](#about)
 - [Features](#features)
-- [Architecture Overview](#architecture-overview)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Environment Setup](#environment-setup)
+- [API Documentation](#api-documentation)
 - [Contributing](#contributing)
 - [License](#license)
 
 ---
 
-## 🧠 About the Project
+## 🧠 About
 
-**Finora** is a full-stack personal finance management application built entirely in TypeScript. It gives users a clear, structured view of their financial life — from daily expense logging to monthly budget planning and visual spending insights.
+**Finora** is a full-stack personal finance management application built entirely in **TypeScript**. It empowers users to take control of their finances with:
 
-The goal of Finora is to remove the friction from personal finance: no spreadsheets, no guesswork — just clean data and actionable clarity.
+- **Real-time transaction tracking** — Log, categorize, and monitor every rupee
+- **Smart budget insights** — Visual analytics on spending patterns
+- **Role-based access** — Admin, analyst, and viewer dashboards
+- **Secure authentication** — JWT-based user sessions with OTP verification
+
+The goal: Remove friction from personal finance management with clean data and actionable insights.
 
 ---
 
-## 🗂️ Monorepo Structure
+## ✨ Features
 
-This is a monorepo — both the backend and frontend live in the same repository, each as an independent application with its own `package.json`, dependencies, and configuration.
-
-```
-Finora/
-├── backend/          # Node.js + Express REST API (TypeScript)
-│   ├── src/
-│   ├── .env.example
-│   ├── package.json
-│   └── README.md     # ← Backend-specific docs
-│
-├── frontend/         # React / Next.js client (TypeScript)
-│   ├── src/
-│   ├── .env.example
-│   ├── package.json
-│   └── README.md     # ← Frontend-specific docs
-│
-├── .gitattributes
-└── README.md         # ← You are here
-```
-
-> **Why a monorepo?**  
-> Keeping both apps in one repo means you can make a single branch/PR that spans frontend + backend changes together — much cleaner for a solo project or a small team.
+- 📊 **Expense & Income Tracking** — Categorize and log transactions effortlessly
+- 📁 **Smart Categories** — Organize spending by custom categories
+- 📈 **Visual Insights** — Dashboard with monthly trends and category breakdowns
+- 🔐 **Secure OTP Authentication** — Email-based login with hashed OTP storage
+- 👥 **Role-Based Access Control** — Admin, Analyst, and Viewer roles with permission guards
+- ⚡ **Cached Performance** — Redis caching for user queries and dashboard data
+- 🗄️ **Soft Deletes** — Safe data handling with soft-delete support
+- 📱 **Responsive Design** — Works seamlessly on desktop, tablet, and mobile
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer      | Technology                                      |
-|------------|--------------------------------------------------|
-| Language   | TypeScript (end-to-end)                         |
-| Backend    | Node.js, Express.js                             |
-| Frontend   | React / Next.js, Tailwind CSS                   |
-| Database   | PostgreSQL / MongoDB _(update as applicable)_   |
-| Auth       | JWT / NextAuth _(update as applicable)_         |
-| ORM        | Prisma / Mongoose _(update as applicable)_      |
-| Dev Tools  | ESLint, Prettier, ts-node, nodemon              |
+| Layer        | Technology                              |
+| ------------ | --------------------------------------- |
+| **Frontend** | React 18 + Vite + TypeScript + Tailwind |
+| **Backend**  | Node.js + Express.js + TypeScript       |
+| **Database** | PostgreSQL + Prisma ORM                 |
+| **Caching**  | Redis (Upstash)                         |
+| **Auth**     | JWT + SHA-256 hashing                   |
+| **Email**    | Nodemailer (SMTP)                       |
+| **DevTools** | ESLint, Prettier, Bun                   |
 
-> 📝 **Note for contributors:** Update the table above to match your actual stack once dependencies are finalised.
+---
+
+## 🗂️ Project Structure
+
+This is a **monorepo** with independent backend and frontend applications:
+
+```
+Finora/
+├── backend/                    # Express REST API
+│   ├── src/
+│   │   ├── service/           # Business logic (user, transaction, stats)
+│   │   ├── middleware/        # Auth & role guards
+│   │   ├── db/                # Prisma & Redis config
+│   │   ├── util/              # Helpers (OTP, cache)
+│   │   ├── types/             # Zod schemas & TypeScript types
+│   │   ├── app.ts             # Express setup
+│   │   └── server.ts          # Server entry point
+│   ├── prisma/
+│   │   ├── schema.prisma      # Database models
+│   │   └── migrations/        # Migration history
+│   ├── .env.example
+│   ├── package.json
+│   └── README.md              # Backend-specific docs
+│
+├── frontend/                   # React SPA
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   ├── assets/
+│   │   └── components/
+│   ├── .env.example
+│   ├── package.json
+│   └── README.md              # Frontend-specific docs
+│
+├── .gitignore
+├── .gitattributes
+└── README.md                   # ← You are here
+```
 
 ---
 
@@ -77,115 +103,188 @@ Finora/
 
 ### Prerequisites
 
-Make sure you have the following installed on your machine before you begin:
+Before you begin, make sure you have the following installed:
 
 - **Node.js** `v18+` — [Download](https://nodejs.org/)
-- **npm** or **pnpm** — comes with Node.js
+- **npm**, **yarn**, or **bun** — comes with Node.js
 - **Git** — [Download](https://git-scm.com/)
-- A running database instance (PostgreSQL or MongoDB, depending on what you use)
+- **PostgreSQL** — Local or cloud-hosted (e.g., Vercel, AWS RDS)
+- **Redis** (optional) — Or use Upstash for serverless Redis
 
-### Clone the Repo
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/garvitthakral/Finora.git
 cd Finora
 ```
 
-### Run Backend
+### 2. Set Up Backend
 
 ```bash
 cd backend
-npm install         # Install backend dependencies
-create .env.example .env  # fill in your values
-npm run dev         # Start the development server
+
+# Install dependencies
+bun install
+# (or: yarn install / bun install)
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your database and SMTP credentials
+
+# Run database migrations
+bun run prisma:migrate dev
+
+# Start the development server
+bun run dev
 ```
 
-The backend will start on `http://localhost:5001` (or whichever port you set in `.env`).
+**Backend runs on:** `http://localhost:5001`
 
-### Run Frontend
+### 3. Set Up Frontend
 
 ```bash
 cd frontend
-npm install         # Install frontend dependencies
-create .env.example .env  # fill in your values
-npm run dev         # Start the dev server
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your backend API URL
+
+# Start the Vite dev server
+npm run dev
 ```
 
-The frontend will start on `http://localhost:5173/`.
-
-> ⚠️ Make sure the backend is running before you start the frontend, as the frontend depends on the API.
+**Frontend runs on:** `http://localhost:5173`
 
 ---
 
-## 🔐 Environment Variables
+## 🔐 Environment Setup
 
-Both apps require their own `.env` files. You will find `.env.example` in each folder with all the required keys documented.
+### Backend `.env`
 
-**Never commit `.env` files.** They are already listed in `.gitignore`.
+```bash
+DATABASE_URL=postgresql://user:password@localhost:5432/finora
+REDIS_URL=redis://localhost:6379           # or Upstash URL
+JWT_SECRET=your-super-secret-jwt-key
+CORS_ORIGIN=http://localhost:5173
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+SMTP_FROM="Finora <noreply@finora.com>"
+NODE_ENV=development
+```
 
-| App      | File location           |
-|----------|--------------------------|
-| Backend  | `backend/.env`          |
-| Frontend | `frontend/.env`         |
+### Frontend `.env`
 
-Refer to each sub-folder's `README.md` for the full list of environment variables required.
+```bash
+VITE_API_URL=http://localhost:5001/api
+```
+
+> 📝 **Security Note:** Never commit `.env` files to version control. They are already in `.gitignore`.
 
 ---
 
-## ✨ Features
+## 📚 API Documentation
 
-- 📊 **Expense Tracking** — Log and categorise your daily spending
-- 📁 **Budget Management** — Set monthly budgets per category and track remaining balance
-- 📈 **Insights & Analytics** — Visual breakdowns of where your money goes
-- 🔐 **Secure Auth** — User accounts with JWT-based authentication
-- 📱 **Responsive UI** — Works seamlessly on desktop and mobile
+Comprehensive API docs are available in the backend README:
+
+- **[User Service API](./backend/src/service/user/README.md)** — Auth, user management, role changes
+- **[Transaction Service API](./backend/src/service/transaction/README.md)** — CRUD operations for transactions
+- **[Stats Service API](./backend/src/service/stats/README.md)** — Dashboard & summaries
+
+### Quick API Examples
+
+**Sign up with OTP:**
+
+```bash
+curl -X POST http://localhost:5001/api/user/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com"}'
+```
+
+**Create a transaction:**
+
+```bash
+curl -X POST http://localhost:5001/api/transaction/create-record \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 500,
+    "type": "EXPENSE",
+    "category": "Food",
+    "date": "2026-04-06T10:30:00Z"
+  }'
+```
 
 ---
 
-## 🏗️ Architecture Overview
-
-Finora follows a classic **client-server architecture**:
+## 🏗️ Architecture
 
 ```
-[ Browser / Client ]
-        │
-        │  HTTP Requests (REST API)
-        ▼
-[ Express.js Backend ]
-        │
-        │  Database Queries
-        ▼
-[ PostgreSQL / MongoDB ]
+┌─────────────────────────┐
+│   React Frontend        │
+│   (Vite + TypeScript)   │
+└────────────┬────────────┘
+             │ REST API (JSON)
+             ▼
+┌─────────────────────────┐
+│   Express Backend       │
+│   (Node.js + TS)        │
+├─────────────────────────┤
+│ • Auth & JWT            │
+│ • Business Logic        │
+│ • Role-Based Guards     │
+└────────────┬────────────┘
+             │
+    ┌────────┴────────┐
+    ▼                 ▼
+┌─────────┐      ┌─────────┐
+│PostgreSQL    │ Redis   │
+│ (Prisma)     │ (Cache) │
+└─────────┘      └─────────┘
 ```
-
-- The **frontend** is a standalone React/Next.js SPA that fetches data from the backend API.
-- The **backend** exposes a RESTful API, handles business logic, authentication, and database operations.
-- Both communicate over HTTP with JSON payloads.
-
-For deeper documentation on each layer, see:
-- [`backend/README.md`](./backend/README.md)
-- [`frontend/README.md`](./frontend/README.md)
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! To contribute:
+Contributions are welcome! Please follow this workflow:
 
-1. Fork the repository
-2. Create a new feature branch: `git checkout -b feat/your-feature-name`
-3. Make your changes and commit: `git commit -m "feat: add your feature"`
-4. Push to your fork: `git push origin feat/your-feature-name`
-5. Open a Pull Request against `main`
+1. **Fork** the repository
+2. **Create a feature branch:** `git checkout -b feat/amazing-feature`
+3. **Commit changes:** `git commit -m "feat: add amazing feature"`
+4. **Push to branch:** `git push origin feat/amazing-feature`
+5. **Open a Pull Request**
 
-Please make sure your code follows the existing TypeScript conventions and passes lint checks before submitting a PR.
+### Code Standards
+
+- Use **TypeScript** for all new code
+- Follow **ESLint** and **Prettier** rules
+- Add **type safety** with Zod schemas
+- Write **error-safe** handlers with proper validation
 
 ---
 
 ## 📄 License
 
-This project is open source. Add your license here — e.g., [MIT License](https://choosealicense.com/licenses/mit/).
+This project is open source under the **MIT License**. See [LICENSE](./LICENSE) for details.
 
 ---
 
-<p align="center">Built with ❤️ by <a href="https://github.com/garvitthakral">Garvit Thakral</a></p>
+## 📞 Support
+
+For issues, questions, or suggestions:
+
+- **Open an Issue** — [GitHub Issues](https://github.com/garvitthakral/Finora/issues)
+- **Email:** garvitthakral@example.com
+
+---
+
+<p align="center">
+  <strong>Built with ❤️ by <a href="https://github.com/garvitthakral">Garvit Thakral</a></strong>
+  <br/>
+  <sub>Making personal finance simple, secure, and insightful.</sub>
+</p>
