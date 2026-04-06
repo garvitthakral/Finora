@@ -1,0 +1,84 @@
+﻿So i have started at 2nd april 11:30pm: after going thought all the docs and context given to me i understood its a financial app in which have to create dash board and all the curd operations, role base access, i have to maintain there financial record mainly and we will add some features along the way 
+
+
+I am using ts for both frontend and backend backend node base using bun and for front end using vite react npm 
+
+
+For db i have gone to postgress SQL and ORM is prisma
+
+
+First step is to create models in db 2 are very clear: 
+1. User
+2. Transaction
+But i have option to create 2 more:
+1. Monthly summary
+2. Category summary model 
+
+
+To make them and keep them constant i again have 3 choices 
+1. Use event based architecture using ques: good but better for big scale apps
+2. Update as soon as we have transaction in a single instance: best bec of consistency and dashboard update immediately but write is a bit slow
+3. Use schedular and worker combo to make it go through all the transaction: one of the worst idea when you take your time and think about it.
+
+
+So i have decided to go with creating the db in a single transition it will take a time but better for now
+
+
+And for the summary models i have decided to also create them so that loading the dashboard is very fast also i am indexing all the transitions from start so there is very less chance of dashboard being slow
+
+
+Firstly I have decided to work on the authentication of the user and for that i am going with otp based signup and login no password needed and otp will go though by gmail
+
+
+Both signup and login will share the controller and by just help of the field we will decide is we will send a res.cookie or not and i have implemented JWT tokens
+
+
+Now i should be going transitions and there should be 5 routes 4 curd and 1 get for filters and stuff this way its easer for frontend to get the data by only one route and our code base will also look clean
+
+
+And i will introduce the middle in this basic role auth base middle ware to stop user getting the data in frontend also 
+
+
+For creating the transaction i am going 3 main db calls and if weather of them is failed the data will not be consistent so for that i will use prisma transitions instance this way i am able to create all 3 db at once and use upsert
+
+
+Now its time for analytical routes and they have given me:
+* Total income
+* Total expenses
+* Net balance
+* Category wise totals
+* Recent activity
+* Monthly or weekly trends
+And i feel for it to be fast all this data can be aggregated and can be combined in a single get request where i can use group function and sum function form prisma to make the query faster 
+
+
+
+
+Ok so i am right one get request in good enough and but for monthly trend i need to user raw SQL query bec i need to to break group for me according to the months and and it does not per
+form that operation but by using raw SQL i will able to get the data directly
+
+
+Then i only need to format it propperly which will take O(n) of no of category and they will be at most 20-25 for most people not more then that
+
+
+I am thinking of adding redis caching in dashboard but i am confused on for how long i should keep it 60sec is recommended but for dashboard i want it for much longer so what i am thinking is to add a function in all of the transaction api that if it is created then delete the key 
+
+
+
+
+I fucked up big while doing middleware : Admin: Can create, update, and manage records and users
+I have made controllers for records where admin can add them but now i am seeing he need access to users also to see users and manage them also
+So now my work is to make controllers that admin has access to and can do curd for users as well
+
+
+
+
+
+
+
+
+
+
+
+
+Technical Decisions and Trade-offs:
