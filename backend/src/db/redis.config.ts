@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Redis } from "ioredis";
+import { Redis } from "@upstash/redis";
 
 const redisHost = process.env.REDIS_HOST || "127.0.0.1";
 const redisPort = process.env.REDIS_PORT || "6379";
@@ -9,15 +9,6 @@ if (!redisHost || !redisPort) {
 }
 
 export const redisConnection = new Redis({
-  host: redisHost,
-  port: Number(redisPort),
-  maxRetriesPerRequest: null,
-});
-
-redisConnection.on("connect", () => {
-  console.log("Redis connected");
-});
-
-redisConnection.on("error", (err) => {
-  console.error("Redis error:", err);
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
