@@ -6,6 +6,7 @@ import { getUsers } from "./controller/getUsers";
 import { allowRoles } from "../../middleware/allowedRolesMiddleware";
 import { authenticateUser } from "../../middleware/JWTAuthMiddleware";
 import { changeRole } from "./controller/changeRole";
+import { deleteUser } from "./controller/deleteUser";
 import { getMe } from "./controller/getMe";
 
 const router = Router();
@@ -25,6 +26,12 @@ router.patch(
   authenticateUser,
   allowRoles(["ADMIN"]),
   changeRole,
+);
+router.delete(
+  "/delete-user/:id",
+  authenticateUser,
+  allowRoles(["ADMIN"]),
+  deleteUser,
 );
 
 export default router;

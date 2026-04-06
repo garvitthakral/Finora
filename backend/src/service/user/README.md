@@ -29,19 +29,20 @@ All routes are mounted under **`/api/user`** (see `src/app.ts`).
 
 ## Routes
 
-| Method  | Path               | Middleware                                  | Description                                          |
-| ------- | ------------------ | ------------------------------------------- | ---------------------------------------------------- |
-| `POST`  | `/signup`          | —                                           | Request OTP for an email.                            |
-| `POST`  | `/verify-otp`      | —                                           | Verify OTP; optional login.                          |
-| `POST`  | `/create-user`     | —                                           | Create a new user; issue JWT cookie.                 |
-| `GET`   | `/users`           | `allowRoles(["ADMIN", "ANALYST"])`          | Paginated user list (see implementation note below). |
-| `PATCH` | `/change-role/:id` | `authenticateUser`, `allowRoles(["ADMIN"])` | Update target user’s role by `:id`.                  |
+| Method   | Path               | Middleware                                             | Description                                          |
+| -------- | ------------------ | ------------------------------------------------------ | ---------------------------------------------------- |
+| `POST`   | `/signup`          | —                                                      | Request OTP for an email.                            |
+| `POST`   | `/verify-otp`      | —                                                      | Verify OTP; optional login.                          |
+| `POST`   | `/create-user`     | —                                                      | Create a new user; issue JWT cookie.                 |
+| `GET`    | `/get-users`       | `authenticateUser`, `allowRoles(["ADMIN", "ANALYST"])` | Paginated user list (see implementation note below). |
+| `PATCH`  | `/change-role/:id` | `authenticateUser`, `allowRoles(["ADMIN"])`            | Update target user’s role by `:id`.                  |
+| `DELETE` | `/delete-user/:id` | `authenticateUser`, `allowRoles(["ADMIN"])`            | Soft-delete a user by `:id`.                         |
 
-### Implementation note: `GET /users`
+### Implementation note: `GET /get-users`
 
-The router applies **`allowRoles` without `authenticateUser`**. The role middleware reads `req.user?.role`, which is only set by `authenticateUser`. As a result, **`req.user` is undefined** on this path and the role check typically yields **403 Forbidden** for every request.
+`GET /get-users` must run `authenticateUser` before `allowRoles`. The role middleware reads `req.user?.role`, which is only populated by `authenticateUser`. Without that middleware, `req.user` is undefined and role checks can incorrectly return **403 Forbidden**.
 
-**Intended usage:** Chain `authenticateUser` before `allowRoles` for `GET /users` so JWT-backed roles are available. The documentation below describes the **handler behavior** once `req.user` is populated.
+**Intended usage:** The router correctly chains `authenticateUser` before `allowRoles` for `GET /get-users`, so JWT-backed roles are available.
 
 ---
 
@@ -301,6 +302,57 @@ Paginated list of users, ordered by `createdAt` descending.
 | `404`         | User not found                     |
 | `400` / `503` | Prisma validation / DB init        |
 | `500`         | Generic error                      |
+
+---
+
+### `DELETE /api/user/delete-user/:id`
+
+**Authentication:** `Authorization: Bearer <JWT>` required.
+
+**Authorization:** `ADMIN` only.
+
+**Path parameters**
+
+| Name | Description      |
+| ---- | ---------------- |
+| `id` | Target user UUID |
+
+**Behavior**
+
+1. Validates the `:id` parameter.
+2. Verifies the target user exists.
+3. Soft-deletes the user by setting `deletedAt` and `status: "INACTIVE"`.
+4. Rejects already-deleted users with `409`.
+
+**Success — `200`**
+
+```json
+{
+  "success": true,
+  "message": "User deleted successfully",
+  "data": {
+    "id": "f1198988-6d1e-482a-8bc6-bd1761c0c9d9",
+    "email": "user@example.com",
+    "name": "User Name",
+    "role": "VIEWER",
+    "status": "INACTIVE",
+    "createdAt": "2026-04-02T02:48:56.436Z",
+    "updatedAt": "2026-04-05T22:09:37.729Z",
+    "deletedAt": "2026-04-05T22:20:00.000Z"
+  }
+}
+```
+
+**Error responses**
+
+| Status | Condition                 |
+| ------ | ------------------------- |
+| `400`  | Missing or invalid `id`   |
+| `403`  | Caller not permitted      |
+| `404`  | User not found            |
+| `409`  | User already deleted      |
+| `503`  | DB initialization failure |
+| `500`  | Generic server error      |
 
 ---
 
