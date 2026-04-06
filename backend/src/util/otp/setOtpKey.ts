@@ -29,12 +29,9 @@ export const setOtpKey = async (
   }
 
   try {
-    const result = await redisConnection.set(
-      key,
-      hashedOTP,
-      "EX",
-      OTP_TTL_SECONDS,
-    );
+    const result = await redisConnection.set(key, hashedOTP, {
+      ex: OTP_TTL_SECONDS,
+    });
 
     if (result !== "OK") {
       return false;
